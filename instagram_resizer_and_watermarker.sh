@@ -122,8 +122,14 @@ heightStory=1920
 DIR_WATERMARK=$DIR_SRCIMG"/watermarked"
 
 DIR_WATERMARK_SQUARE=$DIR_WATERMARK"-square-"$sizeSquare"px-"$sizeSquare"px"
+DIR_WATERMARK_LANDSCAPE=$DIR_WATERMARK"-landscape-"$widthLandscape"px-"$heightLandscape"px"
+DIR_WATERMARK_PORTRAIT=$DIR_WATERMARK"-portrait-"$widthPortrait"px-"$heightPortrait"px"
+DIR_WATERMARK_STORY=$DIR_WATERMARK"-story-"$widthStory"px-"$heightStory"px"
 
 check_and_create_DIR "$DIR_WATERMARK_SQUARE"
+check_and_create_DIR "$DIR_WATERMARK_LANDSCAPE"
+check_and_create_DIR "$DIR_WATERMARK_PORTRAIT"
+check_and_create_DIR "$DIR_WATERMARK_STORY"
 #check_files_existance "$WATERMARK_SE_S"
 #check_files_existance "$WATERMARK_SE_M"
 #check_files_existance "$WATERMARK_SE_L"
@@ -140,6 +146,9 @@ for FN in *.jpg *.jpeg *.JPG *.JPEG *.HEIC *.heic *.png *.PNG; do
 
   FN_CUT="${FN%.*}"
   FQFN_SQUARE=$DIR_WATERMARK_SQUARE/$FN_CUT"-"$sizeSquare"px-"$sizeSquare"px.jpg"
+  FQFN_LANDSCAPE=$DIR_WATERMARK_LANDSCAPE/$FN_CUT"-"$widthLandscape"px-"$heightLandscape"px.jpg"
+  FQFN_PORTRAIT=$DIR_WATERMARK_PORTRAIT/$FN_CUT"-"$widthPortrait"px-"$heightPortrait"px.jpg"
+  FQFN_STORY=$DIR_WATERMARK_STORY/$FN_CUT"-"$widthStory"px-"$heightStory"px.jpg"
 
   WIDTH=$(identify -ping -format '%w' "$FN")
   echo "WIDTH: $WIDTH"
@@ -153,6 +162,22 @@ for FN in *.jpg *.jpeg *.JPG *.JPEG *.HEIC *.heic *.png *.PNG; do
   eval "$CMD"
   CMD="$CONVERT -font helvetica -fill \"$TEXTCOLOR\" -pointsize $LABELLING_SIZE -gravity SouthEast -annotate +"$OFFSET_WATERMARK_X"+$(($OFFSET_WATERMARK_Y + $LABELLING_SIZE)) \"${LABELLING_TEXT}\" \"$FQFN_SQUARE\" \"$FQFN_SQUARE\" "
   eval "$CMD"
+
+  CMD="$CONVERT \"$DIR_SRCIMG/$FN\" -resize \"$widthLandscape\"x\"$heightLandscape\"^ -strip -gravity center -extent \"$widthLandscape\"x\"$heightLandscape\" -quality $QUALITYJPG  \"$FQFN_LANDSCAPE\" "
+  eval "$CMD"
+  CMD="$CONVERT -font helvetica -fill \"$TEXTCOLOR\" -pointsize $LABELLING_SIZE -gravity SouthEast -annotate +"$OFFSET_WATERMARK_X"+$(($OFFSET_WATERMARK_Y + $LABELLING_SIZE)) \"${LABELLING_TEXT}\" \"$FQFN_LANDSCAPE\" \"$FQFN_LANDSCAPE\" "
+  eval "$CMD"
+
+  CMD="$CONVERT \"$DIR_SRCIMG/$FN\" -resize \"$widthPortrait\"x\"$heightPortrait\"^ -strip -gravity center -extent \"$widthPortrait\"x\"$heightPortrait\" -quality $QUALITYJPG  \"$FQFN_PORTRAIT\" "
+  eval "$CMD"
+  CMD="$CONVERT -font helvetica -fill \"$TEXTCOLOR\" -pointsize $LABELLING_SIZE -gravity SouthEast -annotate +"$OFFSET_WATERMARK_X"+$(($OFFSET_WATERMARK_Y + $LABELLING_SIZE)) \"${LABELLING_TEXT}\" \"$FQFN_PORTRAIT\" \"$FQFN_PORTRAIT\" "
+  eval "$CMD"
+
+  CMD="$CONVERT \"$DIR_SRCIMG/$FN\" -resize \"$widthStory\"x\"$heightStory\"\> -strip -quality $QUALITYJPG  \"$FQFN_STORY\" "
+  eval "$CMD"
+  CMD="$CONVERT -font helvetica -fill \"$TEXTCOLOR\" -pointsize $LABELLING_SIZE -gravity SouthEast -annotate +"$OFFSET_WATERMARK_X"+$(($OFFSET_WATERMARK_Y + $LABELLING_SIZE)) \"${LABELLING_TEXT}\" \"$FQFN_STORY\" \"$FQFN_STORY\" "
+  eval "$CMD"
+
 
 done
 
