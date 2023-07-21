@@ -45,6 +45,7 @@ echo "DIR_SRCIMG: $DIR_SRCIMG"
 echo "DIR_SCRIPT: $DIR_SCRIPT"
 #echo "DIR_WATERMARK_IMAGES: $DIR_WATERMARK_IMAGES"
 
+# functions
 function check_DIR {
   DIR=$1
   if [ ! -d "$DIR" ]; then
@@ -53,7 +54,6 @@ function check_DIR {
   fi
 }
 
-# functions
 function check_and_create_DIR {
   DIR=$1
   #  [ -d "$DIR" ] && echo "Directory $DIR exists. -> OK" || mkdir $DIR # works but not so verbose
@@ -76,15 +76,6 @@ function check_files_existance {
     echo "Error: $FN NOT FOUND --> EXIT."
     exit 1
   fi
-}
-
-function get_filename_without_extension {
-  filename=$1
-  FN_CUT="${filename%.*}"
-  #  filename=$(basename -- "$1")
-  #  extension="${filename##*.}"
-  #  filename="${filename%.*}"
-  return "$FN_CUT"
 }
 
 # check if all needed DIR exist
@@ -177,7 +168,6 @@ for FN in *.jpg *.jpeg *.JPG *.JPEG *.HEIC *.heic *.png *.PNG; do
   eval "$CMD"
   CMD="$CONVERT -font helvetica -fill \"$TEXTCOLOR\" -pointsize $LABELLING_SIZE -gravity SouthEast -annotate +"$OFFSET_WATERMARK_X"+$(($OFFSET_WATERMARK_Y + $LABELLING_SIZE)) \"${LABELLING_TEXT}\" \"$FQFN_STORY\" \"$FQFN_STORY\" "
   eval "$CMD"
-
 
 done
 
