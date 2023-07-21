@@ -45,12 +45,6 @@ echo "DIR_SRCIMG: $DIR_SRCIMG"
 echo "DIR_SCRIPT: $DIR_SCRIPT"
 #echo "DIR_WATERMARK_IMAGES: $DIR_WATERMARK_IMAGES"
 
-# Resolutions to generate
-# IDEA Make this as an array and loop through the resolutions an generate all dirs on the fly
-r6k=6000
-r4k=4000
-r2k=1680
-
 function check_DIR {
   DIR=$1
   if [ ! -d "$DIR" ]; then
@@ -108,14 +102,28 @@ check_DIR "$DIR_BASE"
 #WATERMARK_SE_S="$DIR_WATERMARK_IMAGES/gloetter_de_wasserzeichen_500px.png"
 #echo "WATERMARK_SE_S = $WATERMARK_SE_S"
 
+# Resolutions to generate
+
+# Instagram Maße:
+# quadratische Posts 1:1 = 1080 px x 1080 px
+# Querformat 1,91:1 = 1200 px x 628 px
+# Hochformat 4:5 = 1080 px x 1350 px
+# Story 9:16 = 1080 px bis 1920 px
+
+sizeSquare=1080
+widthLandscape=1200
+heightLandscape=628
+widthPortrait=$sizeSquare
+heightPortrait=1350
+widthStory=$sizeSquare
+heightStory=1920
+
 # create subfolders for images
 DIR_WATERMARK=$DIR_SRCIMG"/watermarked"
-DIR_WATERMARK_2k=$DIR_WATERMARK"-"$r2k"px"
-DIR_WATERMARK_4k=$DIR_WATERMARK"-"$r4k"px"
-DIR_WATERMARK_6k=$DIR_WATERMARK"-"$r6k"px"
-check_and_create_DIR "$DIR_WATERMARK_2k"
-check_and_create_DIR "$DIR_WATERMARK_4k"
-check_and_create_DIR "$DIR_WATERMARK_6k"
+
+DIR_WATERMARK_SQUARE=$DIR_WATERMARK"-square-"$sizeSquare"px-"$sizeSquare"px"
+
+check_and_create_DIR "$DIR_WATERMARK_SQUARE"
 #check_files_existance "$WATERMARK_SE_S"
 #check_files_existance "$WATERMARK_SE_M"
 #check_files_existance "$WATERMARK_SE_L"
@@ -131,32 +139,21 @@ for FN in *.jpg *.jpeg *.JPG *.JPEG *.HEIC *.heic *.png *.PNG; do
   ((COUNTER++))
 
   FN_CUT="${FN%.*}"
-  FQFN_6k=$DIR_WATERMARK_6k/$FN_CUT"-"$r6k"px.jpg"
-  FQFN_4k=$DIR_WATERMARK_4k/$FN_CUT"-"$r4k"px.jpg"
-  FQFN_2k=$DIR_WATERMARK_2k/$FN_CUT"-"$r2k"px.jpg"
-  
-  echo "$FQFN_6k"
-  echo "$FQFN_4k"
-  echo "$FQFN_2k"
-
-  CMD="$CONVERT \"$DIR_SRCIMG/$FN\" -resize $r6k -strip -quality $QUALITYJPG  \"$FQFN_6k\" "
-  eval "$CMD"
+  FQFN_SQUARE=$DIR_WATERMARK_SQUARE/$FN_CUT"-"$sizeSquare"px-"$sizeSquare"px.jpg"
 
   WIDTH=$(identify -ping -format '%w' "$FN")
   echo "WIDTH: $WIDTH"
-  LABELLING_SIZE=$(($WIDTH / 60))
-  OFFSET_WATERMARK_X=$(($WIDTH / 50))
-  OFFSET_WATERMARK_Y=100
+  LABELLING_SIZE=$(($WIDTH / 150))
+  OFFSET_WATERMARK_X=$(($WIDTH / 70))
+  OFFSET_WATERMARK_Y=0
   LABELLING_TEXT="Watermark Text"
   TEXTCOLOR="#FFFFFF"
 
-  CMD="$CONVERT -font helvetica -fill \"$TEXTCOLOR\" -pointsize $LABELLING_SIZE -gravity NorthWest -annotate +"$OFFSET_WATERMARK_X"+$(($OFFSET_WATERMARK_Y + $(($LABELLING_SIZE * 2)))) \"${LABELLING_TEXT}\" \"$FQFN_6k\" \"$FQFN_6k\" "
+  CMD="$CONVERT \"$DIR_SRCIMG/$FN\" -resize \"$sizeSquare\"x\"$sizeSquare\"^ -strip -gravity center -extent \"$sizeSquare\"x\"$sizeSquare\" -quality $QUALITYJPG  \"$FQFN_SQUARE\" "
+  eval "$CMD"
+  CMD="$CONVERT -font helvetica -fill \"$TEXTCOLOR\" -pointsize $LABELLING_SIZE -gravity SouthEast -annotate +"$OFFSET_WATERMARK_X"+$(($OFFSET_WATERMARK_Y + $LABELLING_SIZE)) \"${LABELLING_TEXT}\" \"$FQFN_SQUARE\" \"$FQFN_SQUARE\" "
   eval "$CMD"
 
-  CMD="$CONVERT \"$FQFN_6k\" -resize $r4k -strip -quality $QUALITYJPG  \"$FQFN_4k\" "
-  eval "$CMD &"
-  CMD="$CONVERT \"$FQFN_6k\" -resize $r2k -strip -quality $QUALITYJPG  \"$FQFN_2k\" "
-  eval "$CMD &"
 done
 
 after=$(date +%s)
