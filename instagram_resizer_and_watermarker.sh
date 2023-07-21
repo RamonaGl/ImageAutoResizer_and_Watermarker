@@ -86,12 +86,8 @@ check_DIR "$DIR_BASE"
 
 ##DIR_BASE=`realpath $1`  # works
 ### SE
-#WATERMARK_SE_L="$DIR_WATERMARK_IMAGES/gloetter_de_wasserzeichen_1600px.png"
-#echo "WATERMARK_SE_L = $WATERMARK_SE_L"
-#WATERMARK_SE_M="$DIR_WATERMARK_IMAGES/gloetter_de_wasserzeichen_1100px.png"
-#echo "WATERMARK_SE_M = $WATERMARK_SE_M"
-#WATERMARK_SE_S="$DIR_WATERMARK_IMAGES/gloetter_de_wasserzeichen_500px.png"
-#echo "WATERMARK_SE_S = $WATERMARK_SE_S"
+#WATERMARK_IMAGE="$DIR_WATERMARK_IMAGES/gloetter_de_wasserzeichen_1600px.png"
+#echo "WATERMARK_IMAGE = $WATERMARK_IMAGE"
 
 # Resolutions to generate
 
@@ -121,9 +117,7 @@ check_and_create_DIR "$DIR_WATERMARK_SQUARE"
 check_and_create_DIR "$DIR_WATERMARK_LANDSCAPE"
 check_and_create_DIR "$DIR_WATERMARK_PORTRAIT"
 check_and_create_DIR "$DIR_WATERMARK_STORY"
-#check_files_existance "$WATERMARK_SE_S"
-#check_files_existance "$WATERMARK_SE_M"
-#check_files_existance "$WATERMARK_SE_L"
+#check_files_existance "$WATERMARK_IMAGE"
 
 cd "$DIR_BASE" || exit 1
 
@@ -131,7 +125,7 @@ cd "$DIR_BASE" || exit 1
 before=$(date +%s) # get timing
 COUNTER=1
 cd "$DIR_SRCIMG" || exit 1
-for FN in *.jpg *.jpeg *.JPG *.JPEG *.HEIC *.heic *.png *.PNG; do
+for FN in *.jpg *.jpeg *.JPG *.JPEG *.HEIC *.heic *.png *.PNG *.tiff *.TIFF *.raw *.RAW; do
   echo "$COUNTER PROCESSING: >$FN<"
   ((COUNTER++))
 
@@ -143,31 +137,37 @@ for FN in *.jpg *.jpeg *.JPG *.JPEG *.HEIC *.heic *.png *.PNG; do
 
   WIDTH=$(identify -ping -format '%w' "$FN")
   echo "WIDTH: $WIDTH"
-  LABELLING_SIZE=$(($WIDTH / 150))
-  OFFSET_WATERMARK_X=$(($WIDTH / 70))
-  OFFSET_WATERMARK_Y=0
+  # LABELLING_SIZE=$(($WIDTH / 150)) # dynamic
+  LABELLING_SIZE=48 # static
+  # OFFSET_WATERMARK_X=$(($WIDTH / 70)) # dynamic
+  OFFSET_WATERMARK_X=30 # static
+  # OFFSET_WATERMARK_Y=0 + LABELLING_SIZE
+  OFFSET_WATERMARK_Y=30 # static
   LABELLING_TEXT="Watermark Text"
   TEXTCOLOR="#FFFFFF"
 
   CMD="$CONVERT \"$DIR_SRCIMG/$FN\" -resize \"$sizeSquare\"x\"$sizeSquare\"^ -strip -gravity center -extent \"$sizeSquare\"x\"$sizeSquare\" -quality $QUALITYJPG  \"$FQFN_SQUARE\" "
   eval "$CMD"
-  CMD="$CONVERT -font helvetica -fill \"$TEXTCOLOR\" -pointsize $LABELLING_SIZE -gravity SouthEast -annotate +"$OFFSET_WATERMARK_X"+$(($OFFSET_WATERMARK_Y + $LABELLING_SIZE)) \"${LABELLING_TEXT}\" \"$FQFN_SQUARE\" \"$FQFN_SQUARE\" "
+  CMD="$CONVERT -font helvetica -fill \"$TEXTCOLOR\" -pointsize $LABELLING_SIZE -gravity SouthEast -annotate +"$OFFSET_WATERMARK_X"+$(($OFFSET_WATERMARK_Y)) \"${LABELLING_TEXT}\" \"$FQFN_SQUARE\" \"$FQFN_SQUARE\" "
   eval "$CMD"
 
   CMD="$CONVERT \"$DIR_SRCIMG/$FN\" -resize \"$widthLandscape\"x\"$heightLandscape\"^ -strip -gravity center -extent \"$widthLandscape\"x\"$heightLandscape\" -quality $QUALITYJPG  \"$FQFN_LANDSCAPE\" "
   eval "$CMD"
-  CMD="$CONVERT -font helvetica -fill \"$TEXTCOLOR\" -pointsize $LABELLING_SIZE -gravity SouthEast -annotate +"$OFFSET_WATERMARK_X"+$(($OFFSET_WATERMARK_Y + $LABELLING_SIZE)) \"${LABELLING_TEXT}\" \"$FQFN_LANDSCAPE\" \"$FQFN_LANDSCAPE\" "
+  CMD="$CONVERT -font helvetica -fill \"$TEXTCOLOR\" -pointsize $LABELLING_SIZE -gravity SouthEast -annotate +"$OFFSET_WATERMARK_X"+$(($OFFSET_WATERMARK_Y)) \"${LABELLING_TEXT}\" \"$FQFN_LANDSCAPE\" \"$FQFN_LANDSCAPE\" "
   eval "$CMD"
 
   CMD="$CONVERT \"$DIR_SRCIMG/$FN\" -resize \"$widthPortrait\"x\"$heightPortrait\"^ -strip -gravity center -extent \"$widthPortrait\"x\"$heightPortrait\" -quality $QUALITYJPG  \"$FQFN_PORTRAIT\" "
   eval "$CMD"
-  CMD="$CONVERT -font helvetica -fill \"$TEXTCOLOR\" -pointsize $LABELLING_SIZE -gravity SouthEast -annotate +"$OFFSET_WATERMARK_X"+$(($OFFSET_WATERMARK_Y + $LABELLING_SIZE)) \"${LABELLING_TEXT}\" \"$FQFN_PORTRAIT\" \"$FQFN_PORTRAIT\" "
+  CMD="$CONVERT -font helvetica -fill \"$TEXTCOLOR\" -pointsize $LABELLING_SIZE -gravity SouthEast -annotate +"$OFFSET_WATERMARK_X"+$(($OFFSET_WATERMARK_Y)) \"${LABELLING_TEXT}\" \"$FQFN_PORTRAIT\" \"$FQFN_PORTRAIT\" "
   eval "$CMD"
 
   CMD="$CONVERT \"$DIR_SRCIMG/$FN\" -resize \"$widthStory\"x\"$heightStory\"\> -strip -quality $QUALITYJPG  \"$FQFN_STORY\" "
   eval "$CMD"
-  CMD="$CONVERT -font helvetica -fill \"$TEXTCOLOR\" -pointsize $LABELLING_SIZE -gravity SouthEast -annotate +"$OFFSET_WATERMARK_X"+$(($OFFSET_WATERMARK_Y + $LABELLING_SIZE)) \"${LABELLING_TEXT}\" \"$FQFN_STORY\" \"$FQFN_STORY\" "
+  CMD="$CONVERT -font helvetica -fill \"$TEXTCOLOR\" -pointsize $LABELLING_SIZE -gravity SouthEast -annotate +"$OFFSET_WATERMARK_X"+$(($OFFSET_WATERMARK_Y)) \"${LABELLING_TEXT}\" \"$FQFN_STORY\" \"$FQFN_STORY\" "
   eval "$CMD"
+
+  #CMD="$COMPOSITE -gravity SouthWest -geometry +"$OFFSET_WATERMARK_X"+"$OFFSET_WATERMARK_Y" $TRANSPARENZ \( \"$WATERMARK_IMAGE\"  \) \"$FQFN_SQUARE\" \"$FQFN_SQUARE\" "
+  #eval "$CMD"
 
 done
 
