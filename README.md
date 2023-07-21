@@ -1,7 +1,6 @@
 # ImageAutoResizer_and_Watermarker
 Resize Images and watermark them
 
-
 ## Setup
 
 ### Setup on Mac
