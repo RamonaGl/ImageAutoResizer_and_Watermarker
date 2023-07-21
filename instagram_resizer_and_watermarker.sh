@@ -108,11 +108,13 @@ heightStory=1920
 # create subfolders for images
 DIR_WATERMARK=$DIR_SRCIMG"/watermarked"
 
+DIR_WATERMARK_ORIGINALS=$DIR_WATERMARK"-originals"
 DIR_WATERMARK_SQUARE=$DIR_WATERMARK"-square-"$sizeSquare"px-"$sizeSquare"px"
 DIR_WATERMARK_LANDSCAPE=$DIR_WATERMARK"-landscape-"$widthLandscape"px-"$heightLandscape"px"
 DIR_WATERMARK_PORTRAIT=$DIR_WATERMARK"-portrait-"$widthPortrait"px-"$heightPortrait"px"
 DIR_WATERMARK_STORY=$DIR_WATERMARK"-story-"$widthStory"px-"$heightStory"px"
 
+check_and_create_DIR "$DIR_WATERMARK_ORIGINALS"
 check_and_create_DIR "$DIR_WATERMARK_SQUARE"
 check_and_create_DIR "$DIR_WATERMARK_LANDSCAPE"
 check_and_create_DIR "$DIR_WATERMARK_PORTRAIT"
@@ -125,18 +127,20 @@ cd "$DIR_BASE" || exit 1
 before=$(date +%s) # get timing
 COUNTER=1
 cd "$DIR_SRCIMG" || exit 1
-for FN in *.jpg *.jpeg *.JPG *.JPEG *.HEIC *.heic *.png *.PNG *.tiff *.TIFF *.raw *.RAW; do
+echo "DIR_SRCIMG $DIR_SRCIMG"
+for FN in *.jpg *.jpeg *.JPG *.JPEG *.HEIC *.heic *.png *.PNG *.tiff *.TIFF *.raw *.RAW *.RW2; do
   echo "$COUNTER PROCESSING: >$FN<"
   ((COUNTER++))
 
   FN_CUT="${FN%.*}"
+  FQFN_ORIGINALS=$DIR_WATERMARK_ORIGINALS/$FN_CUT".jpg"
   FQFN_SQUARE=$DIR_WATERMARK_SQUARE/$FN_CUT"-"$sizeSquare"px-"$sizeSquare"px.jpg"
   FQFN_LANDSCAPE=$DIR_WATERMARK_LANDSCAPE/$FN_CUT"-"$widthLandscape"px-"$heightLandscape"px.jpg"
   FQFN_PORTRAIT=$DIR_WATERMARK_PORTRAIT/$FN_CUT"-"$widthPortrait"px-"$heightPortrait"px.jpg"
   FQFN_STORY=$DIR_WATERMARK_STORY/$FN_CUT"-"$widthStory"px-"$heightStory"px.jpg"
 
   WIDTH=$(identify -ping -format '%w' "$FN")
-  echo "WIDTH: $WIDTH"
+  HEIGHT=$(identify -ping -format '%h' "$FN")
   # LABELLING_SIZE=$(($WIDTH / 150)) # dynamic
   LABELLING_SIZE=48 # static
   # OFFSET_WATERMARK_X=$(($WIDTH / 70)) # dynamic
@@ -145,6 +149,11 @@ for FN in *.jpg *.jpeg *.JPG *.JPEG *.HEIC *.heic *.png *.PNG *.tiff *.TIFF *.ra
   OFFSET_WATERMARK_Y=30 # static
   LABELLING_TEXT="Watermark Text"
   TEXTCOLOR="#FFFFFF"
+
+  CMD="$CONVERT \"$DIR_SRCIMG/$FN\" -resize \"$WIDTH\"x\"$HEIGHT\"^ -strip -gravity center -extent \"$WIDTH\"x\"$HEIGHT\" -quality $QUALITYJPG  \"$FQFN_ORIGINALS\" "
+  eval "$CMD"
+  CMD="$CONVERT -font helvetica -fill \"$TEXTCOLOR\" -pointsize $(($LABELLING_SIZE * 3)) -gravity SouthEast -annotate +"$(($OFFSET_WATERMARK_X * 3))"+$(($OFFSET_WATERMARK_Y * 3)) \"${LABELLING_TEXT}\" \"$FQFN_ORIGINALS\" \"$FQFN_ORIGINALS\" "
+  eval "$CMD"
 
   CMD="$CONVERT \"$DIR_SRCIMG/$FN\" -resize \"$sizeSquare\"x\"$sizeSquare\"^ -strip -gravity center -extent \"$sizeSquare\"x\"$sizeSquare\" -quality $QUALITYJPG  \"$FQFN_SQUARE\" "
   eval "$CMD"
